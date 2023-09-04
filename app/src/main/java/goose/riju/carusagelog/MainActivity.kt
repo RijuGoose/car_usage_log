@@ -1,5 +1,8 @@
 package goose.riju.carusagelog
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,15 +26,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        ActivityCompat.requestPermissions(
-//            this, arrayOf(
-//                Manifest.permission.WRITE_CALENDAR,
-//                Manifest.permission.READ_CALENDAR,
-//                Manifest.permission.BLUETOOTH,
-//                Manifest.permission.BLUETOOTH_CONNECT
-//            ),
-//            1
-//        )
+        createNotificationChannel()
 
         setContent {
             CarUsageLogTheme {
@@ -44,5 +39,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun createNotificationChannel() {
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(
+            SettingsViewModel.BT_NOTIFICATION_CHANNEL,
+            "Drive",
+            importance).apply {
+            description = "Sends a notification when the driving ends"
+        }
+        // Register the channel with the system
+        val notificationManager: NotificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 }

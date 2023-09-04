@@ -46,4 +46,8 @@ class SettingsViewModel @Inject constructor(
             notificationCheck = settings.showNotification
         }
     }
+
+    companion object {
+        const val BT_NOTIFICATION_CHANNEL = "bt_notification"
+    }
 }

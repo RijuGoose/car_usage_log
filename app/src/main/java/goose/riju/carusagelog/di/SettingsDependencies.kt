@@ -1,6 +1,8 @@
 package goose.riju.carusagelog.di
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
@@ -22,6 +24,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object SettingsDependencies {
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Provides
     @Singleton
     fun provideBluetoothReceiverManager(

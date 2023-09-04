@@ -101,8 +101,8 @@ fun SettingsScreen(
                 context,
                 arrayOf(
                     Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR,
-                    Manifest.permission.BLUETOOTH,
-                    Manifest.permission.BLUETOOTH_CONNECT
+                    Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.POST_NOTIFICATIONS
                 ),
                 requestLauncher
             )
