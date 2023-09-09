@@ -1,17 +1,18 @@
 package goose.riju.carusagelog.receiver.bluetoothreceiver
 
-import android.Manifest
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
-import goose.riju.carusagelog.R
+import goose.riju.carusagelog.receiver.calendarreceiver.CalendarReceiver
 import goose.riju.carusagelog.repository.SettingsRepository
+import kotlinx.coroutines.flow.first
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Calendar
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -26,51 +27,36 @@ class BluetoothReceiverManager(
                 startMillis = time.timeInMillis
             )
         }
+        Log.d("libastart-info", settingsRepository.getSettings().first().toString())
     }
 
-    suspend fun drivingEnded() {
+    fun endDriveDelay() {
+        setAddEventDelay()
+    }
+
+    private fun setAddEventDelay() {
+        val alarmManager = context.getSystemService(AlarmManager::class.java)
+
+        val intent = Intent(context, CalendarReceiver::class.java)
+        alarmManager.setAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            LocalDateTime.now().plusSeconds(30).atZone(
+                ZoneId.systemDefault()
+            ).toEpochSecond() * 1000L,
+            PendingIntent.getBroadcast(
+                context,
+                1,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+    }
+
+    suspend fun setBtDeviceMAC(deviceMAC: String) {
         settingsRepository.updateSettings {
-            val time: Calendar = Calendar.getInstance()
             it.copy(
-                endMillis = time.timeInMillis
+                btDeviceMAC = deviceMAC
             )
         }
-
-        addEventToCalendar()
-    }
-
-    private fun addEventToCalendar() {
-        val calendarPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR)
-
-        if(calendarPermission == PackageManager.PERMISSION_GRANTED) {
-            Log.d("libapermission", "calendar granted")
-            sendEndNotification()
-        }
-        else{
-            Log.d("libapermission", "calendar denied")
-        }
-    }
-
-    private fun sendEndNotification() {
-        val notificationPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-
-        if(notificationPermission == PackageManager.PERMISSION_GRANTED)
-        {
-            Log.d("libapermission", "noti permission granted")
-            val builder = NotificationCompat.Builder(context, BT_NOTIFICATION_CHANNEL)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentText("Driving event automatically added to your calendar")
-                .setContentTitle("Drive ended")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOnlyAlertOnce(true)
-                .setAutoCancel(true)
-
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(1, builder.build())
-        }
-    }
-
-    companion object {
-        const val BT_NOTIFICATION_CHANNEL = "bt_notification"
     }
 }

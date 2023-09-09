@@ -16,6 +16,8 @@ import goose.riju.carusagelog.data.SettingsDataSource
 import goose.riju.carusagelog.data.SettingsDataSourceDataStore
 import goose.riju.carusagelog.data.SettingsSerializer
 import goose.riju.carusagelog.receiver.bluetoothreceiver.BluetoothReceiverManager
+import goose.riju.carusagelog.receiver.calendarreceiver.CalendarReceiverManager
+import goose.riju.carusagelog.receiver.common.CommonReceiverManager
 import goose.riju.carusagelog.repository.SettingsRepository
 import goose.riju.carusagelog.repository.SettingsRepositoryImpl
 import javax.inject.Singleton
@@ -23,6 +25,20 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object SettingsDependencies {
+
+    @Provides
+    @Singleton
+    fun provideCommonReceiverManager(
+        settingsRepository: SettingsRepository,
+        @ApplicationContext context: Context
+    ) : CommonReceiverManager = CommonReceiverManager(settingsRepository, context)
+
+    @Provides
+    @Singleton
+    fun provideCalendarReceiverManager(
+        settingsRepository: SettingsRepository,
+        @ApplicationContext context: Context
+    ) : CalendarReceiverManager = CalendarReceiverManager(settingsRepository, context)
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Provides
