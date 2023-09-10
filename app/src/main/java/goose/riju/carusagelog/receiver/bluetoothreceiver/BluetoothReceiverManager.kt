@@ -5,12 +5,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import goose.riju.carusagelog.receiver.calendarreceiver.CalendarReceiver
 import goose.riju.carusagelog.repository.SettingsRepository
-import kotlinx.coroutines.flow.first
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Calendar
@@ -27,7 +25,6 @@ class BluetoothReceiverManager(
                 startMillis = time.timeInMillis
             )
         }
-        Log.d("libastart-info", settingsRepository.getSettings().first().toString())
     }
 
     fun endDriveDelay() {

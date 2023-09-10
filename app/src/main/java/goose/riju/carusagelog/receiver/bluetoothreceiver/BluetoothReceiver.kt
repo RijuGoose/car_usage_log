@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import dagger.hilt.android.AndroidEntryPoint
 import goose.riju.carusagelog.extension.parcelable
@@ -28,7 +27,6 @@ class BluetoothReceiver : BroadcastReceiver() {
         when (action) {
             BluetoothDevice.ACTION_ACL_CONNECTED -> {
                 if (commonReceiverManager.isGivenBtDevice(btDevice)) {
-                    Log.d("libaflow", "bt connected")
                     bluetoothReceiverManager.setBtDeviceMAC(btDevice.toString())
                     bluetoothReceiverManager.drivingStarted()
                 }
@@ -36,7 +34,6 @@ class BluetoothReceiver : BroadcastReceiver() {
 
             BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
                 if (commonReceiverManager.isGivenBtDevice(btDevice)) {
-                    Log.d("libaflow", "bt ended but delayed")
                     bluetoothReceiverManager.endDriveDelay()
                 }
             }

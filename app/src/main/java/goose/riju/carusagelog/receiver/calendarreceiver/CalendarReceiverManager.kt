@@ -4,8 +4,9 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.CalendarContract
-import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -15,14 +16,12 @@ import goose.riju.carusagelog.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class CalendarReceiverManager(
     private val settingsRepository: SettingsRepository,
     @ApplicationContext private val context: Context
 ) {
-
-    // TODO: nem csak notit küldeni, hanem megnézni hogy csatlakozva van e újra az eszközhöz
-    // meg a 10mp az nem 10mp, azt is csekkolni
-    private fun sendEndNotification() {
+    private fun sendEndNotification(message: String) {
         val notificationPermission =
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
 
@@ -31,7 +30,7 @@ class CalendarReceiverManager(
                 BT_NOTIFICATION_CHANNEL
             )
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentText("Driving event automatically added to your calendar")
+                .setContentText(message)
                 .setContentTitle("Drive ended")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setOnlyAlertOnce(true)
@@ -50,9 +49,6 @@ class CalendarReceiverManager(
             )
         }
         addEventToCalendar()
-        if(settingsRepository.getSettings().first().showNotification) {
-            sendEndNotification()
-        }
     }
 
     private suspend fun addEventToCalendar() {
@@ -60,17 +56,14 @@ class CalendarReceiverManager(
             ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR)
 
         if (calendarPermission == PackageManager.PERMISSION_GRANTED) {
-            Log.d("libapermission", "calendar granted")
-
             val settings = settingsRepository.getSettings().first()
 
             val calID: Long = getCalendarId(context, settings.calendarName)
 
             if (calID == -1L) {
-                //calendar not found
-                Log.d("libaflow", "calendar not found")
+                sendEndNotification("The given calendar is not found.")
             }
-            else{
+            else {
                 val cr = context.contentResolver
                 val values = ContentValues()
                 values.put(CalendarContract.Events.DTSTART, settings.startMillis)
@@ -82,10 +75,13 @@ class CalendarReceiverManager(
                 )
                 values.put(CalendarContract.Events.CALENDAR_ID, calID)
                 cr.insert(CalendarContract.Events.CONTENT_URI, values)
-                Log.d("libaflow", "calendar found and added")
+
+                if(settingsRepository.getSettings().first().showNotification) {
+                    sendEndNotification("Driving event automatically added to your calendar")
+                }
             }
         } else {
-            Log.d("libapermission", "calendar denied")
+            sendEndNotification("Event was not added because you did not give permission to it.")
         }
     }
 
