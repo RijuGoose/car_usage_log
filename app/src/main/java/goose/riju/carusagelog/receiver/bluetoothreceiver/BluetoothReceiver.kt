@@ -8,7 +8,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import dagger.hilt.android.AndroidEntryPoint
 import goose.riju.carusagelog.extension.parcelable
-import goose.riju.carusagelog.receiver.common.CommonReceiverManager
 import goose.riju.carusagelog.receiver.extension.goAsync
 import javax.inject.Inject
 
@@ -17,8 +16,6 @@ import javax.inject.Inject
 class BluetoothReceiver : BroadcastReceiver() {
     @Inject
     lateinit var bluetoothReceiverManager: BluetoothReceiverManager
-    @Inject
-    lateinit var commonReceiverManager: CommonReceiverManager
 
     override fun onReceive(context: Context?, intent: Intent?) = goAsync {
         val action: String? = intent?.action
@@ -26,14 +23,18 @@ class BluetoothReceiver : BroadcastReceiver() {
 
         when (action) {
             BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                if (commonReceiverManager.isGivenBtDevice(btDevice)) {
-                    bluetoothReceiverManager.setBtDeviceMAC(btDevice.toString())
-                    bluetoothReceiverManager.drivingStarted()
+                if (bluetoothReceiverManager.isGivenBtDevice(btDevice)) {
+                    if (bluetoothReceiverManager.hasDrivingStartedAlready()) {
+                        bluetoothReceiverManager.driveResume()
+                    } else {
+                        bluetoothReceiverManager.setBtDeviceMAC(btDevice.toString())
+                        bluetoothReceiverManager.drivingStarted()
+                    }
                 }
             }
 
             BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                if (commonReceiverManager.isGivenBtDevice(btDevice)) {
+                if (bluetoothReceiverManager.isGivenBtDevice(btDevice)) {
                     bluetoothReceiverManager.endDriveDelay()
                 }
             }
