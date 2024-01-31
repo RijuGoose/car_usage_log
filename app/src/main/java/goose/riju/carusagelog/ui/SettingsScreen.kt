@@ -3,18 +3,24 @@ package goose.riju.carusagelog.ui
 import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -70,54 +76,65 @@ fun SettingsScreen(
     ) { contentPadding ->
         Column(
             modifier = modifier
+                .fillMaxSize()
                 .padding(contentPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 16.dp, vertical = 32.dp)
         ) {
-            Spacer(modifier = Modifier.padding(12.dp))
-            OutlinedTextField(
-                label = {
-                    Text(
-                        text = "Calendar name"
-                    )
-                },
-                value = viewModel.calendarName,
-                onValueChange = { viewModel.calendarName = it },
-                modifier = Modifier.padding(8.dp)
-            )
-            OutlinedTextField(
-                label = {
-                    Text(
-                        text = "Bluetooth device name"
-                    )
-                },
-                value = viewModel.btDeviceName,
-                onValueChange = { viewModel.btDeviceName = it }
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Checkbox(
-                    checked = viewModel.notificationCheck,
-                    onCheckedChange = { viewModel.notificationCheck = it }
+                OutlinedTextField(
+                    label = {
+                        Text(
+                            text = "Calendar name"
+                        )
+                    },
+                    value = viewModel.calendarName,
+                    onValueChange = { viewModel.calendarName = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
                 )
-                Text(
-                    text = "Send notification when the driving ended"
+                OutlinedTextField(
+                    label = {
+                        Text(
+                            text = "Bluetooth device name"
+                        )
+                    },
+                    value = viewModel.btDeviceName,
+                    onValueChange = { viewModel.btDeviceName = it },
+                    modifier = Modifier.fillMaxWidth()
                 )
+
+                OutlinedCard {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = "Send notification when the driving ended"
+                        )
+                        Switch(
+                            checked = viewModel.notificationCheck,
+                            onCheckedChange = { viewModel.notificationCheck = it })
+                    }
+                }
             }
 
-            Button(onClick = {
-                if (permissionList.allPermissionsGranted) {
-                    viewModel.saveSettings()
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Save successful")
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    if (permissionList.allPermissionsGranted) {
+                        viewModel.saveSettings()
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Save successful")
+                        }
+                    } else {
+                        permissionList.launchMultiplePermissionRequest()
                     }
-                } else {
-                    permissionList.launchMultiplePermissionRequest()
-                }
 
-            }) {
+                }) {
                 Text(
                     text = "Save"
                 )
@@ -125,3 +142,4 @@ fun SettingsScreen(
         }
     }
 }
+// https://google.com/maps/dir/47.544092,+19.043661/47.532791,+19.072124
