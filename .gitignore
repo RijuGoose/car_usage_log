@@ -335,3 +335,4 @@ $RECYCLE.BIN/
 *.lnk
 /.idea/kotlinc.xml
 /.idea/.gitignore
+/.idea/deploymentTargetDropDown.xml

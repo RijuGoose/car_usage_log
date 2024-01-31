@@ -1,12 +1,7 @@
 package goose.riju.carusagelog.ui
 
 import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,8 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.checkSelfPermission
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @ExperimentalMaterial3Api
 @Composable
@@ -38,34 +37,31 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     modifier: Modifier = Modifier
 ) {
-    val permissions = arrayOf(
+    val permissions = listOf(
         Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR,
         Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_CONNECT,
-        Manifest.permission.POST_NOTIFICATIONS,
-        Manifest.permission.SCHEDULE_EXACT_ALARM
+        Manifest.permission.POST_NOTIFICATIONS
     )
 
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val requestLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissionsMap ->
-        val areGranted = permissionsMap.values.reduce { acc, next ->
-            acc && next
-        }
-        if (areGranted) {
-            viewModel.saveSettings()
-            scope.launch {
-                snackbarHostState.showSnackbar("Save successful")
+    val permissionList = rememberMultiplePermissionsState(permissions = permissions,
+        onPermissionsResult = { granted ->
+            val anyPermissionsDenied = granted.any { perm ->
+                !perm.value
             }
-        } else {
-            scope.launch {
-                snackbarHostState.showSnackbar("Please grant every required permissions.")
+            if (anyPermissionsDenied) {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Please grant every required permissions.")
+                }
+            } else {
+                viewModel.saveSettings()
+                scope.launch {
+                    snackbarHostState.showSnackbar("Save successful")
+                }
             }
-        }
-    }
+        })
 
     Scaffold(
         snackbarHost = {
@@ -112,41 +108,20 @@ fun SettingsScreen(
             }
 
             Button(onClick = {
-                if (checkAndRequestAllPermissions(
-                        context,
-                        permissions,
-                        requestLauncher
-                    )
-                ) {
+                if (permissionList.allPermissionsGranted) {
                     viewModel.saveSettings()
                     scope.launch {
                         snackbarHostState.showSnackbar("Save successful")
                     }
+                } else {
+                    permissionList.launchMultiplePermissionRequest()
                 }
+
             }) {
                 Text(
                     text = "Save"
                 )
             }
         }
-    }
-}
-
-fun checkAndRequestAllPermissions(
-    context: Context,
-    permissions: Array<String>,
-    launcher: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>
-): Boolean {
-    return if (!permissions.all {
-            checkSelfPermission(
-                context,
-                it
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-    ) {
-        launcher.launch(permissions)
-        false
-    } else {
-        true
     }
 }

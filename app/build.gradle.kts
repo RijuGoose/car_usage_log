@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "goose.riju.carusagelog"
-        minSdk = 26
+        minSdk = 31
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
